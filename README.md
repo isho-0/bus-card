@@ -37,15 +37,15 @@ bus-card/
 ├── CMakeLists.txt          # 메인 CMake 설정
 ├── src/                    # 소스 코드
 │   ├── CMakeLists.txt      # 소스 빌드 설정
-│   ├── main.cpp            # 메인 함수
-│   ├── bus_card.hpp        # 버스카드 클래스
-│   ├── bus_card.cpp        # 버스카드 구현
-│   ├── transit_system.hpp  # 대중교통 시스템 클래스
-│   ├── transit_system.cpp  # 대중교통 시스템 구현
-│   ├── fare_calculator.hpp # 요금 계산기 클래스
-│   ├── fare_calculator.cpp # 요금 계산기 구현
-│   ├── serial_manager.hpp  # 시리얼 번호 관리 클래스
-│   └── serial_manager.cpp  # 시리얼 번호 관리 구현
+│   ├── main.cc             # 메인 함수
+│   ├── bus_card.h          # 버스카드 클래스
+│   ├── bus_card.cc         # 버스카드 구현
+│   ├── transit_system.h    # 대중교통 시스템 클래스
+│   ├── transit_system.cc   # 대중교통 시스템 구현
+│   ├── fare_calculator.h   # 요금 계산기 클래스
+│   ├── fare_calculator.cc  # 요금 계산기 구현
+│   ├── serial_manager.h    # 시리얼 번호 관리 클래스
+│   └── serial_manager.cc   # 시리얼 번호 관리 구현
 ├── build/                  # 빌드 출력 디렉토리
 ├── .gitignore             # Git 무시 파일
 ├── .clang-format          # 코드 포맷팅 설정 (Google 스타일)
@@ -245,7 +245,7 @@ brew install cmake  # macOS
 sudo apt install cmake  # Ubuntu/Debian
 
 # 코드 포맷팅 (Google 스타일)
-clang-format -i src/*.cpp src/*.hpp
+clang-format -i src/*.cc src/*.h
 ```
 
 ---
