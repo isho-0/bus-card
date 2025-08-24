@@ -89,15 +89,34 @@ void UIManager::ShowBoardingMessage(TransportType type) {
   
   std::cout << "\n";
   std::cout << "🚌 " << transport_name << " 탑승중...\n";
-  std::cout << "🔔 하차 시, 벨을 눌러주세요!\n";
   
-  WaitForEnter();
+  if (type == TransportType::kBus) {
+    std::cout << "🔔 하차 시, 벨을 눌러주세요!\n";
+  } else {
+    std::cout << "🚇 하차 시, 문이 열리면 내려주세요!\n";
+  }
 }
 
 void UIManager::ShowExitMessage() {
   std::cout << "\n";
   std::cout << "+-------------------------------------+\n";
   std::cout << "|           하차 완료                 |\n";
+  std::cout << "+-------------------------------------+\n";
+  std::cout << "\n";
+}
+
+void UIManager::ShowFareInfo(double fare, bool is_transfer) {
+  std::cout << "\n";
+  std::cout << "+-------------------------------------+\n";
+  std::cout << "|           요금 정보                 |\n";
+  std::cout << "+-------------------------------------+\n";
+  
+  if (is_transfer) {
+    std::cout << "| 🎫 환승 할인이 적용되었습니다!      |\n";
+  }
+  
+  std::cout << "| 💰 요금: " << std::fixed << std::setprecision(0) 
+            << std::setw(8) << fare << "원        |\n";
   std::cout << "+-------------------------------------+\n";
   std::cout << "\n";
 }
@@ -118,6 +137,54 @@ void UIManager::ShowTaxAppliedMessage() {
   std::cout << "\n";
   std::cout << "⚠️  부가세가 적용되었습니다!\n";
   std::cout << "\n";
+}
+
+void UIManager::ShowCardSelectionMenu() {
+  std::cout << "\n";
+  std::cout << "+-------------------------------------+\n";
+  std::cout << "|           카드 선택                 |\n";
+  std::cout << "+-------------------------------------+\n";
+  
+  auto card_list = transit_system_.GetCardList();
+  
+  if (card_list.empty()) {
+    std::cout << "| ❌ 등록된 카드가 없습니다!           |\n";
+    std::cout << "|    먼저 카드를 추가해주세요.        |\n";
+    std::cout << "+-------------------------------------+\n";
+    return;
+  }
+  
+  for (const auto& card_pair : card_list) {
+    std::string index = card_pair.first;
+    std::string serial = card_pair.second;
+    
+    std::cout << "| [" << std::left << std::setw(2) << index << "] " 
+              << std::left << std::setw(25) << serial << " |\n";
+  }
+  
+  std::cout << "+-------------------------------------+\n";
+  std::cout << "\n사용할 카드 번호를 선택하세요: ";
+}
+
+std::string UIManager::SelectCardByNumber() {
+  auto card_list = transit_system_.GetCardList();
+  
+  if (card_list.empty()) {
+    return "";
+  }
+  
+  int choice = GetUserChoice(1, static_cast<int>(card_list.size()));
+  std::string selected_serial = transit_system_.GetCardByIndex(choice);
+  
+  if (!selected_serial.empty()) {
+    // 선택된 카드 정보 표시
+    BusCard* selected_card = transit_system_.GetCard(selected_serial);
+    if (selected_card) {
+      std::cout << "\n✅ 선택된 카드: " << selected_serial << "\n";
+    }
+  }
+  
+  return selected_serial;
 }
 
 int UIManager::GetUserChoice(int min, int max) {
@@ -204,11 +271,12 @@ void UIManager::HandleOuting() {
   ShowTransportSelection();
   TransportType type = GetTransportType();
   
-  std::cout << "\n카드 시리얼 번호를 입력하세요: ";
-  std::string serial = GetCardSerialNumber();
+  // 카드 선택 메뉴 표시
+  ShowCardSelectionMenu();
+  std::string serial = SelectCardByNumber();
   
-  if (!transit_system_.IsCardExists(serial)) {
-    ShowErrorMessage("존재하지 않는 카드입니다!");
+  if (serial.empty()) {
+    ShowErrorMessage("카드 선택에 실패했습니다!");
     WaitForEnter();
     return;
   }
@@ -222,9 +290,22 @@ void UIManager::HandleOuting() {
   if (transit_system_.BoardTransport(serial, type)) {
     ShowBoardingMessage(type);
     
+    // 하차 시 사용자 입력 대기 (교통수단에 따라 다른 메시지)
+    if (type == TransportType::kBus) {
+      std::cout << "\n🔔 하차벨을 누르고 Enter를 눌러주세요...";
+    } else {
+      std::cout << "\n🚇 하차하시려면 Enter를 눌러주세요...";
+    }
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cin.get();
+    
     // 하차 처리
     ShowExitMessage();
     transit_system_.ExitTransport(serial);
+    
+    // 요금 정보 표시
+    auto transfer_info = transit_system_.GetTransferInfo(serial);
+    ShowFareInfo(transfer_info.second, transfer_info.first);
     
     // 환승 옵션 표시
     ShowTransferOptions();
@@ -243,8 +324,23 @@ void UIManager::HandleOuting() {
       
       if (transit_system_.BoardTransport(serial, transfer_type)) {
         ShowBoardingMessage(transfer_type);
+        
+        // 두 번째 하차 시에도 사용자 입력 대기 (교통수단에 따라 다른 메시지)
+        if (transfer_type == TransportType::kBus) {
+          std::cout << "\n🔔 하차벨을 누르고 Enter를 눌러주세요...";
+        } else {
+          std::cout << "\n🚇 하차하시려면 Enter를 눌러주세요...";
+        }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin.get();
+        
         ShowExitMessage();
         transit_system_.ExitTransport(serial);
+        
+        // 최종 요금 정보 표시
+        auto final_transfer_info = transit_system_.GetTransferInfo(serial);
+        ShowFareInfo(final_transfer_info.second, final_transfer_info.first);
+        
         ShowSuccessMessage("최종 목적지에 도착했습니다!");
       }
     }
