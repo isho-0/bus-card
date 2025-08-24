@@ -1,8 +1,7 @@
 #include "fare_calculator.h"
 
-FareCalculator::FareCalculator()
-    : transfer_discount_rate_(0.2),  // 20% 할인
-      tax_rate_(0.1) {               // 10% 부가세
+FareCalculator::FareCalculator() 
+    : transfer_discount_rate_(0.2), tax_rate_(0.1) {
 }
 
 double FareCalculator::CalculateBaseFare(TransportType transport_type, double distance) const {
@@ -17,7 +16,7 @@ double FareCalculator::CalculateBaseFare(TransportType transport_type, double di
       break;
   }
   
-  // 거리별 추가 요금 (1km당 100원)
+  // 거리별 추가 요금 계산
   if (distance > 0.0) {
     base_fare += distance * kDistanceRate;
   }
@@ -41,11 +40,18 @@ double FareCalculator::AddTax(double fare) const {
 }
 
 double FareCalculator::CalculateFinalFare(TransportType transport_type, 
-                                        bool is_transfer, 
-                                        double distance) const {
+                                         bool is_transfer, 
+                                         double distance) const {
+  // 기본 요금 계산
   double base_fare = CalculateBaseFare(transport_type, distance);
+  
+  // 환승 할인 적용
   double discounted_fare = ApplyTransferDiscount(base_fare, is_transfer);
-  return discounted_fare;
+  
+  // 부가세 적용 (부가세는 할인된 요금에 적용)
+  double final_fare = AddTax(discounted_fare);
+  
+  return final_fare;
 }
 
 void FareCalculator::SetTransferDiscountRate(double rate) {

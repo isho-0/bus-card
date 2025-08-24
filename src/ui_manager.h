@@ -19,6 +19,7 @@ class UIManager {
   void ShowTransportSelection();
   void ShowBoardingMessage(TransportType type);
   void ShowExitMessage();
+  void ShowFareInfo(double fare, bool is_transfer);
   void ShowTransferOptions();
   void ShowTaxAppliedMessage();
   

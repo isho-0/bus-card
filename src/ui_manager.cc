@@ -102,6 +102,22 @@ void UIManager::ShowExitMessage() {
   std::cout << "\n";
 }
 
+void UIManager::ShowFareInfo(double fare, bool is_transfer) {
+  std::cout << "\n";
+  std::cout << "+-------------------------------------+\n";
+  std::cout << "|           요금 정보                 |\n";
+  std::cout << "+-------------------------------------+\n";
+  
+  if (is_transfer) {
+    std::cout << "| 🎫 환승 할인이 적용되었습니다!      |\n";
+  }
+  
+  std::cout << "| 💰 요금: " << std::fixed << std::setprecision(0) 
+            << std::setw(8) << fare << "원        |\n";
+  std::cout << "+-------------------------------------+\n";
+  std::cout << "\n";
+}
+
 void UIManager::ShowTransferOptions() {
   std::cout << "\n";
   std::cout << "+-------------------------------------+\n";
@@ -222,9 +238,18 @@ void UIManager::HandleOuting() {
   if (transit_system_.BoardTransport(serial, type)) {
     ShowBoardingMessage(type);
     
+    // 하차 시 사용자 입력 대기
+    std::cout << "\n하차하시려면 Enter를 누르세요...";
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cin.get();
+    
     // 하차 처리
     ShowExitMessage();
     transit_system_.ExitTransport(serial);
+    
+    // 요금 정보 표시
+    auto transfer_info = transit_system_.GetTransferInfo(serial);
+    ShowFareInfo(transfer_info.second, transfer_info.first);
     
     // 환승 옵션 표시
     ShowTransferOptions();
@@ -243,8 +268,19 @@ void UIManager::HandleOuting() {
       
       if (transit_system_.BoardTransport(serial, transfer_type)) {
         ShowBoardingMessage(transfer_type);
+        
+        // 두 번째 하차 시에도 사용자 입력 대기
+        std::cout << "\n하차하시려면 Enter를 누르세요...";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin.get();
+        
         ShowExitMessage();
         transit_system_.ExitTransport(serial);
+        
+        // 최종 요금 정보 표시
+        auto final_transfer_info = transit_system_.GetTransferInfo(serial);
+        ShowFareInfo(final_transfer_info.second, final_transfer_info.first);
+        
         ShowSuccessMessage("최종 목적지에 도착했습니다!");
       }
     }
