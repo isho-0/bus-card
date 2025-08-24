@@ -89,9 +89,12 @@ void UIManager::ShowBoardingMessage(TransportType type) {
   
   std::cout << "\n";
   std::cout << "🚌 " << transport_name << " 탑승중...\n";
-  std::cout << "🔔 하차 시, 벨을 눌러주세요!\n";
   
-  WaitForEnter();
+  if (type == TransportType::kBus) {
+    std::cout << "🔔 하차 시, 벨을 눌러주세요!\n";
+  } else {
+    std::cout << "🚇 하차 시, 문이 열리면 내려주세요!\n";
+  }
 }
 
 void UIManager::ShowExitMessage() {
@@ -220,7 +223,6 @@ void UIManager::HandleOuting() {
   ShowTransportSelection();
   TransportType type = GetTransportType();
   
-  std::cout << "\n카드 시리얼 번호를 입력하세요: ";
   std::string serial = GetCardSerialNumber();
   
   if (!transit_system_.IsCardExists(serial)) {
@@ -238,8 +240,12 @@ void UIManager::HandleOuting() {
   if (transit_system_.BoardTransport(serial, type)) {
     ShowBoardingMessage(type);
     
-    // 하차 시 사용자 입력 대기
-    std::cout << "\n하차하시려면 Enter를 누르세요...";
+    // 하차 시 사용자 입력 대기 (교통수단에 따라 다른 메시지)
+    if (type == TransportType::kBus) {
+      std::cout << "\n🔔 하차벨을 누르고 Enter를 눌러주세요...";
+    } else {
+      std::cout << "\n🚇 하차하시려면 Enter를 눌러주세요...";
+    }
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cin.get();
     
@@ -269,8 +275,12 @@ void UIManager::HandleOuting() {
       if (transit_system_.BoardTransport(serial, transfer_type)) {
         ShowBoardingMessage(transfer_type);
         
-        // 두 번째 하차 시에도 사용자 입력 대기
-        std::cout << "\n하차하시려면 Enter를 누르세요...";
+        // 두 번째 하차 시에도 사용자 입력 대기 (교통수단에 따라 다른 메시지)
+        if (transfer_type == TransportType::kBus) {
+          std::cout << "\n🔔 하차벨을 누르고 Enter를 눌러주세요...";
+        } else {
+          std::cout << "\n🚇 하차하시려면 Enter를 눌러주세요...";
+        }
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         std::cin.get();
         
