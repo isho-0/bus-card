@@ -1,6 +1,7 @@
 #include "transit_system.h"
 #include <algorithm>
 #include <chrono>
+#include "fare_calculator.h"
 
 TransitSystem::TransitSystem() {
 }
@@ -51,11 +52,6 @@ bool TransitSystem::BoardTransport(const std::string& serial_number, TransportTy
   
   active_trips_[serial_number] = record;
   
-  // 부가세가 적용된 상태라면 첫 탑승 시에만 메시지 표시
-  if (tax_applied && !is_transfer) {
-    // 부가세 적용 메시지는 UI에서 처리
-  }
-  
   return true;
 }
 
@@ -67,6 +63,14 @@ bool TransitSystem::ExitTransport(const std::string& serial_number) {
   
   TripRecord& record = it->second;
   record.exit_time = std::chrono::system_clock::now();
+  
+  // 요금 계산
+  FareCalculator calculator;
+  record.fare = calculator.CalculateFinalFare(
+      record.transport_type, 
+      record.is_transfer,
+      0.0  // 거리는 기본값으로 설정
+  );
   
   // 여행 기록을 히스토리에 추가
   AddToHistory(record);
@@ -93,8 +97,8 @@ bool TransitSystem::IsTransferEligible(const std::string& serial_number) const {
 }
 
 void TransitSystem::ProcessTransfer(const std::string& serial_number) {
-  (void)serial_number;  // 사용하지 않는 매개변수 경고 방지
   // 환승 처리 로직은 이미 BoardTransport에서 처리됨
+  (void)serial_number;
 }
 
 TripStatus TransitSystem::GetCardStatus(const std::string& serial_number) const {
@@ -155,4 +159,57 @@ bool TransitSystem::IsValidSerialNumber(const std::string& serial_number) const 
 
 void TransitSystem::AddToHistory(const TripRecord& record) {
   trip_history_.push_back(record);
+}
+
+// 새로운 메서드: 현재 활성 여행 정보 조회
+TripRecord* TransitSystem::GetActiveTrip(const std::string& serial_number) {
+  auto it = active_trips_.find(serial_number);
+  if (it != active_trips_.end()) {
+    return &(it->second);
+  }
+  return nullptr;
+}
+
+// 새로운 메서드: 환승 가능 여부와 함께 요금 정보 반환
+std::pair<bool, double> TransitSystem::GetTransferInfo(const std::string& serial_number) const {
+  bool is_transfer = IsTransferEligible(serial_number);
+  
+  FareCalculator calculator;
+  double fare = calculator.CalculateFinalFare(
+      TransportType::kBus,  // 기본값으로 버스 사용
+      is_transfer,
+      0.0
+  );
+  
+  return {is_transfer, fare};
+}
+
+// 카드 리스트 반환 (번호와 시리얼 번호 쌍)
+std::vector<std::pair<std::string, std::string>> TransitSystem::GetCardList() const {
+  std::vector<std::pair<std::string, std::string>> card_list;
+  int index = 1;
+  
+  for (const auto& card_pair : cards_) {
+    card_list.push_back({std::to_string(index), card_pair.first});
+    index++;
+  }
+  
+  return card_list;
+}
+
+// 인덱스로 카드 시리얼 번호 반환
+std::string TransitSystem::GetCardByIndex(int index) const {
+  if (index < 1 || index > static_cast<int>(cards_.size())) {
+    return "";  // 잘못된 인덱스
+  }
+  
+  int current_index = 1;
+  for (const auto& card_pair : cards_) {
+    if (current_index == index) {
+      return card_pair.first;
+    }
+    current_index++;
+  }
+  
+  return "";  // 찾을 수 없음
 }

@@ -55,6 +55,14 @@ class TransitSystem {
   // 시스템 정보
   size_t GetTotalCards() const;
   size_t GetActiveTrips() const;
+  
+  // 새로운 메서드들
+  TripRecord* GetActiveTrip(const std::string& serial_number);
+  std::pair<bool, double> GetTransferInfo(const std::string& serial_number) const;
+  
+  // 카드 리스트 관련
+  std::vector<std::pair<std::string, std::string>> GetCardList() const;  // {번호, 시리얼번호} 쌍 반환
+  std::string GetCardByIndex(int index) const;  // 인덱스로 카드 시리얼 번호 반환
 
  private:
   std::unordered_map<std::string, BusCard> cards_;
