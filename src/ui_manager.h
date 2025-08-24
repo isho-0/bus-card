@@ -23,6 +23,10 @@ class UIManager {
   void ShowTransferOptions();
   void ShowTaxAppliedMessage();
   
+  // 카드 선택 관련
+  void ShowCardSelectionMenu();
+  std::string SelectCardByNumber();
+  
   // 사용자 입력 처리
   int GetUserChoice(int min, int max);
   std::string GetCardSerialNumber();

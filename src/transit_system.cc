@@ -183,3 +183,33 @@ std::pair<bool, double> TransitSystem::GetTransferInfo(const std::string& serial
   
   return {is_transfer, fare};
 }
+
+// 카드 리스트 반환 (번호와 시리얼 번호 쌍)
+std::vector<std::pair<std::string, std::string>> TransitSystem::GetCardList() const {
+  std::vector<std::pair<std::string, std::string>> card_list;
+  int index = 1;
+  
+  for (const auto& card_pair : cards_) {
+    card_list.push_back({std::to_string(index), card_pair.first});
+    index++;
+  }
+  
+  return card_list;
+}
+
+// 인덱스로 카드 시리얼 번호 반환
+std::string TransitSystem::GetCardByIndex(int index) const {
+  if (index < 1 || index > static_cast<int>(cards_.size())) {
+    return "";  // 잘못된 인덱스
+  }
+  
+  int current_index = 1;
+  for (const auto& card_pair : cards_) {
+    if (current_index == index) {
+      return card_pair.first;
+    }
+    current_index++;
+  }
+  
+  return "";  // 찾을 수 없음
+}

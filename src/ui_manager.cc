@@ -139,6 +139,54 @@ void UIManager::ShowTaxAppliedMessage() {
   std::cout << "\n";
 }
 
+void UIManager::ShowCardSelectionMenu() {
+  std::cout << "\n";
+  std::cout << "+-------------------------------------+\n";
+  std::cout << "|           카드 선택                 |\n";
+  std::cout << "+-------------------------------------+\n";
+  
+  auto card_list = transit_system_.GetCardList();
+  
+  if (card_list.empty()) {
+    std::cout << "| ❌ 등록된 카드가 없습니다!           |\n";
+    std::cout << "|    먼저 카드를 추가해주세요.        |\n";
+    std::cout << "+-------------------------------------+\n";
+    return;
+  }
+  
+  for (const auto& card_pair : card_list) {
+    std::string index = card_pair.first;
+    std::string serial = card_pair.second;
+    
+    std::cout << "| [" << std::left << std::setw(2) << index << "] " 
+              << std::left << std::setw(25) << serial << " |\n";
+  }
+  
+  std::cout << "+-------------------------------------+\n";
+  std::cout << "\n사용할 카드 번호를 선택하세요: ";
+}
+
+std::string UIManager::SelectCardByNumber() {
+  auto card_list = transit_system_.GetCardList();
+  
+  if (card_list.empty()) {
+    return "";
+  }
+  
+  int choice = GetUserChoice(1, static_cast<int>(card_list.size()));
+  std::string selected_serial = transit_system_.GetCardByIndex(choice);
+  
+  if (!selected_serial.empty()) {
+    // 선택된 카드 정보 표시
+    BusCard* selected_card = transit_system_.GetCard(selected_serial);
+    if (selected_card) {
+      std::cout << "\n✅ 선택된 카드: " << selected_serial << "\n";
+    }
+  }
+  
+  return selected_serial;
+}
+
 int UIManager::GetUserChoice(int min, int max) {
   int choice;
   while (true) {
@@ -223,10 +271,12 @@ void UIManager::HandleOuting() {
   ShowTransportSelection();
   TransportType type = GetTransportType();
   
-  std::string serial = GetCardSerialNumber();
+  // 카드 선택 메뉴 표시
+  ShowCardSelectionMenu();
+  std::string serial = SelectCardByNumber();
   
-  if (!transit_system_.IsCardExists(serial)) {
-    ShowErrorMessage("존재하지 않는 카드입니다!");
+  if (serial.empty()) {
+    ShowErrorMessage("카드 선택에 실패했습니다!");
     WaitForEnter();
     return;
   }
