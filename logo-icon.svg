@@ -61,9 +61,4 @@
     </g>
   </g>
 
-  <!-- Minimal 'BC' monogram for small sizes -->
-  <g transform="translate(408,112)">
-    <rect x="-36" y="-36" width="72" height="72" rx="16" ry="16" fill="#000000" opacity="0.12"/>
-    <text x="0" y="10" font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="40" text-anchor="middle" fill="#ffffff" opacity="0.85" font-weight="700">BC</text>
-  </g>
 </svg>
